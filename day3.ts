@@ -21,5 +21,31 @@ const sumProductofPairs = (pairs: number[][] | undefined) => {
 const pairs = getPairs(input)
 const result = sumProductofPairs(pairs)
 
-console.log("Valid Pairs: ", pairs)
-console.log("Total: ", result + 1)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const sampleConditionalInput =
+  "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+
+const filterConditionalPairs = (input: string): string => {
+  const matchesWithConditionals = input.match(
+    /(mul\(\d+,\d+\))|(do\(\))|(don't\(\))/g,
+  )
+  let conditionActive = true
+
+  let conditionalPairs: string = ""
+  matchesWithConditionals?.map((match) => {
+    if (match === "do()") {
+      conditionActive = true
+    } else if (match === "don't()") {
+      conditionActive = false
+    }
+
+    if (conditionActive) conditionalPairs += match
+  })
+  return conditionalPairs
+}
+
+const conditionalPairs = filterConditionalPairs(input)
+const conditionalTotal = sumProductofPairs(getPairs(conditionalPairs))
+
+console.log("Unconditional Total: ", result)
+console.log("Conditional Total: ", conditionalTotal)
