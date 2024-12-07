@@ -5,6 +5,7 @@ const lines = data.split("\n")
 const reports = lines.map((line) => line.split(" ").map(Number))
 
 // Sample Data
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sampleReports = [
   [7, 6, 4, 2, 1],
   [1, 2, 7, 8, 9],
