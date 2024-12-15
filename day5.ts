@@ -34,7 +34,7 @@ const sampleUpdates = `
 
 const input = fs.readFileSync("day5data.txt", "utf8")
 
-const [inputRules, inputUpdates] = input.split('\n\n')
+const [inputRules, inputUpdates] = input.split("\n\n")
 
 const splitRules = (rules: string) => {
   return rules
@@ -53,12 +53,6 @@ const splitUpdates = (updates: string) => {
 const rules = splitRules(inputRules)
 const updates = splitUpdates(inputUpdates)
 
-// const mapUpdates = (update: number[]) => {
-//   return update.map((num, pos) => {
-//     return [num, pos]
-//   })
-// }
-
 // Return only the rules where both of its numbers are included in the update
 const getRelevantRules = (rules: number[][], update: number[]) => {
   return rules.filter((rule) => {
@@ -70,8 +64,8 @@ const getRelevantRules = (rules: number[][], update: number[]) => {
 const checkPassRule = (update: number[], rule: number[]) => {
   const firstNumIndex = update.indexOf(rule[0])
   const secondNumIndex = update.indexOf(rule[1])
-  
-  return (secondNumIndex - firstNumIndex) > 0
+
+  return secondNumIndex - firstNumIndex > 0
 }
 
 // Check a single update
@@ -81,18 +75,37 @@ const checkRelevantRules = (rules: number[][], update: number[]) => {
   })
 }
 
-const findPassingUpdates = (updates: number[][], rules: number[][]) => {
+const returnFailingRule = (rules: number[][], update: number[]) => {
+  for (const rule of rules) {
+    const result = checkPassRule(update, rule)
+    if (result) continue
+    if (!result) return rule
+  }
+}
+
+const findPassingAndFailingUpdateIndices = (
+  updates: number[][],
+  rules: number[][],
+) => {
   const passingIndices: number[] = []
+  const failingIndices: number[] = []
   updates.map((update, index) => {
     const relevantRules = getRelevantRules(rules, update)
     const isValidUpdate = checkRelevantRules(relevantRules, update)
-    if (isValidUpdate) passingIndices.push(index)
+    if (isValidUpdate) {
+      passingIndices.push(index)
+    } else {
+      failingIndices.push(index)
+    }
     console.log(`Update #${index}: ${isValidUpdate}`)
   })
-  return passingIndices
+  return [passingIndices, failingIndices]
 }
 
-const passingIndices = findPassingUpdates(updates, rules)
+const [passingIndices, failingIndices] = findPassingAndFailingUpdateIndices(
+  updates,
+  rules,
+)
 
 const findMiddleNumber = (update: number[]) => {
   const updateLength = update.length - 1
@@ -101,13 +114,59 @@ const findMiddleNumber = (update: number[]) => {
   return update[midpoint]
 }
 
-const addUpAllPassingMiddleNumbers = (passingIndices: number[], updates: number[][]) => {
+const addUpAllPassingMiddleNumbers = (updates: number[][]) => {
   let sum: number = 0
-  for (const index of passingIndices) {
-    const middleNumber = findMiddleNumber(updates[index])
+  for (const update of updates) {
+    const middleNumber = findMiddleNumber(update)
     sum = sum + middleNumber
   }
   return sum
 }
 
-console.log(`Sum of Passing Updates: ${addUpAllPassingMiddleNumbers(passingIndices, updates)}`)
+const passingUpdates = updates.filter((_, index) => {
+  return passingIndices.includes(index)
+})
+
+console.log(
+  `Sum of Passing Updates: ${addUpAllPassingMiddleNumbers(passingUpdates)}`,
+)
+
+const swapNumberPositions = (update: number[], failingRule: number[]) => {
+  const firstIndex = update.indexOf(failingRule[0])
+  const secondIndex = update.indexOf(failingRule[1])
+
+  const firstNum = update.slice(firstIndex, firstIndex + 1)
+  const secondNum = update.slice(secondIndex, secondIndex + 1)
+
+  update.splice(firstIndex, 1, secondNum[0])
+  update.splice(secondIndex, 1, firstNum[0])
+  return update
+}
+
+const fixFailingUpdate = (badUpdate: number[], rules: number[][]) => {
+  const relevantRules = getRelevantRules(rules, badUpdate)
+  let update = badUpdate
+
+  while (!checkRelevantRules(relevantRules, update)) {
+    const failingRule = returnFailingRule(relevantRules, update)
+    if (!failingRule) continue
+    update = swapNumberPositions(update, failingRule)
+  }
+  return update
+}
+
+const fixFailingUpdates = (failingIndices: number[], updates: number[][]) => {
+  const fixedUpdates: number[][] = []
+  for (const index of failingIndices) {
+    const badUpdate = updates[index]
+    const fixedUpdate = fixFailingUpdate(badUpdate, rules)
+    fixedUpdates.push(fixedUpdate)
+  }
+  return fixedUpdates
+}
+
+const fixedUpdates = fixFailingUpdates(failingIndices, updates)
+
+console.log(
+  `Sum of Fixed Failing Updates: ${addUpAllPassingMiddleNumbers(fixedUpdates)}`,
+)
