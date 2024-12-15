@@ -1,3 +1,5 @@
+import fs from "fs"
+
 const sampleRules = `
 47|53
 97|13
@@ -30,6 +32,10 @@ const sampleUpdates = `
 97,13,75,29,47
 `
 
+const input = fs.readFileSync("day5data.txt", "utf8")
+
+const [inputRules, inputUpdates] = input.split('\n\n')
+
 const splitRules = (rules: string) => {
   return rules
     .trim()
@@ -44,17 +50,64 @@ const splitUpdates = (updates: string) => {
     .map((update) => update.split(",").map(Number))
 }
 
-const mapUpdates = (update: number[]) => {
-  return update.map((num, pos) => {
-    return [num, pos]
+const rules = splitRules(inputRules)
+const updates = splitUpdates(inputUpdates)
+
+// const mapUpdates = (update: number[]) => {
+//   return update.map((num, pos) => {
+//     return [num, pos]
+//   })
+// }
+
+// Return only the rules where both of its numbers are included in the update
+const getRelevantRules = (rules: number[][], update: number[]) => {
+  return rules.filter((rule) => {
+    return rule.every((num) => update.includes(num))
   })
 }
 
-console.log(mapUpdates(splitUpdates(sampleUpdates)[0]))
+// Create a tuple of indexes for the two vals in the rule
+const checkPassRule = (update: number[], rule: number[]) => {
+  const firstNumIndex = update.indexOf(rule[0])
+  const secondNumIndex = update.indexOf(rule[1])
+  
+  return (secondNumIndex - firstNumIndex) > 0
+}
 
-const rules = splitRules(sampleRules)
-const updates = splitUpdates(sampleUpdates)
+// Check a single update
+const checkRelevantRules = (rules: number[][], update: number[]) => {
+  return rules.every((rule) => {
+    return checkPassRule(update, rule)
+  })
+}
 
-console.log(rules)
-console.log(updates)
+const findPassingUpdates = (updates: number[][], rules: number[][]) => {
+  const passingIndices: number[] = []
+  updates.map((update, index) => {
+    const relevantRules = getRelevantRules(rules, update)
+    const isValidUpdate = checkRelevantRules(relevantRules, update)
+    if (isValidUpdate) passingIndices.push(index)
+    console.log(`Update #${index}: ${isValidUpdate}`)
+  })
+  return passingIndices
+}
 
+const passingIndices = findPassingUpdates(updates, rules)
+
+const findMiddleNumber = (update: number[]) => {
+  const updateLength = update.length - 1
+  const midpoint = Math.round(updateLength / 2)
+
+  return update[midpoint]
+}
+
+const addUpAllPassingMiddleNumbers = (passingIndices: number[], updates: number[][]) => {
+  let sum: number = 0
+  for (const index of passingIndices) {
+    const middleNumber = findMiddleNumber(updates[index])
+    sum = sum + middleNumber
+  }
+  return sum
+}
+
+console.log(`Sum of Passing Updates: ${addUpAllPassingMiddleNumbers(passingIndices, updates)}`)
