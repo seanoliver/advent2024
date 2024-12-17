@@ -27,7 +27,7 @@ const relativePositions = {
   "^": [-1, 0],
 }
 
-const turnRight = {
+const turn = {
   ">": "v",
   "v": "<",
   "<": "^",
