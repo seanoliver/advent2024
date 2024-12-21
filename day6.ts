@@ -1,3 +1,7 @@
+import { readFileSync } from "fs"
+
+const input = readFileSync("day6data.txt", "utf-8")
+
 const sampleInput = `
 ....#.....
 .........#
@@ -11,25 +15,29 @@ const sampleInput = `
 ......#...
 `
 
-const parsedInput = sampleInput
+const parsedInput = input
   .trim()
   .split("\n")
   .map((line) => line.split(""))
 
-console.log(parsedInput)
+const dimensions = {
+  x: parsedInput[0].length,
+  y: parsedInput.length,
+}
+console.log("dimensions", dimensions)
 
 const directions = ["^", ">", "v", "<"]
 
 const relativePositions = {
   ">": [0, 1],
-  "v": [1, 0],
+  v: [1, 0],
   "<": [0, -1],
   "^": [-1, 0],
 }
 
-const turn = {
+const turnRight = {
   ">": "v",
-  "v": "<",
+  v: "<",
   "<": "^",
   "^": ">",
 }
@@ -46,12 +54,9 @@ const getPosition = (input: string[][], directions: string[]) => {
 
 const move = (input: string[][], direction: string, position: number[]) => {
   const [x, y] = position
-  const [dx, dy] = relativePositions[direction as keyof typeof relativePositions]
+  const [dx, dy] =
+    relativePositions[direction as keyof typeof relativePositions]
   const newPosition = [x + dx, y + dy]
-  const [newX, newY] = newPosition
-  if (input[newX][newY] === "#") {
-    return position
-  }
   return newPosition
 }
 
@@ -61,7 +66,39 @@ const markPath = (input: string[][], position: number[]) => {
   return input
 }
 
-const startingPosition = getPosition(parsedInput, directions)
+const main = ({ input }: { input: string[][] }) => {
+  const currentPosition = getPosition(input, directions)
+  if (!currentPosition) return
 
-console.log(startingPosition)
+  const currentDirection = input[currentPosition[0]][currentPosition[1]]
+  const newPosition = move(input, currentDirection, currentPosition)
+  if (
+    newPosition[0] >= input.length ||
+    newPosition[1] >= input[0].length ||
+    newPosition[0] < 0 ||
+    newPosition[1] < 0
+  ) {
+    input[currentPosition[0]][currentPosition[1]] = "X"
+    return input
+  } else {
+    const newPositionValue = input[newPosition[0]][newPosition[1]]
+    if (!newPositionValue) return
 
+    if (newPositionValue === "." || newPositionValue === "X") {
+      markPath(input, newPosition)
+      input[currentPosition[0]][currentPosition[1]] = "X"
+      input[newPosition[0]][newPosition[1]] = currentDirection
+      return main({ input })
+    } else if (newPositionValue === "#") {
+      const newDirection = turnRight[currentDirection as keyof typeof turnRight]
+      input[currentPosition[0]][currentPosition[1]] = newDirection
+      return main({ input })
+    } else if (!newPositionValue) {
+      return input
+    }
+  }
+}
+
+const result = main({ input: parsedInput })
+const countX = result?.flat().filter((cell) => cell === "X").length
+console.log("countX", countX)
