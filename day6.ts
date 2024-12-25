@@ -15,7 +15,7 @@ const sampleInput = `
 ......#...
 `
 
-const parsedInput = sampleInput
+const parsedInput = input
   .trim()
   .split("\n")
   .map((line) => line.split(""))
