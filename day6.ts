@@ -124,12 +124,6 @@ console.log("Count of X:", countX)
 
 type Direction = 'U' | 'R' | 'D' | 'L'
 
-interface State {
-  row: number
-  col: number
-  dir: Direction
-}
-
 export function solvePartTwo(grid: string[]): number {
   // Parse the grid to locate guard start and direction
   const numRows = grid.length
